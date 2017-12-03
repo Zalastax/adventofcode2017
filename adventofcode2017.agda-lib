@@ -1,0 +1,4 @@
+name: adventofcode2017
+include:
+    ./day-1/
+depend: standard-library

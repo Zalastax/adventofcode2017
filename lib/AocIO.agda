@@ -1,5 +1,5 @@
 module AocIO where
-open import IO.Primitive
+open import IO.Primitive public
 open import Data.String as String
 open import Data.List as List
 

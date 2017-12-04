@@ -15,22 +15,7 @@ open import Data.Product
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary
 open import Data.Nat.Properties
-
-postulate
-  getLine : IO Costring
-
-{-# COMPILE GHC getLine = getLine #-}
-
-{-# FOREIGN GHC import qualified Data.Text    as Text #-}
-{-# FOREIGN GHC import qualified Data.Text.IO as Text #-}
-{-# FOREIGN GHC import System.Environment (getArgs, getProgName) #-}
-
-postulate
-  getArgs : IO (List String)
-  getProgName : IO String
-
-{-# COMPILE GHC getArgs = fmap (map Text.pack) getArgs #-}
-{-# COMPILE GHC getProgName = fmap Text.pack getProgName   #-}
+open import AocIO
 
 toDigit : Char → Maybe ℕ
 toDigit '0' = just 0
@@ -60,9 +45,6 @@ makePairs : {A : Set} → {N : ℕ } → Vec A (suc N) → Vec (A × A) N
 makePairs (x ∷ y ∷ vs) = ( ( x , y )) ∷ makePairs (y ∷ vs)
 makePairs (x ∷ []) = []
 
--- vecLength : {A : Set} → (N M : ℕ) → Vec A (N + M) → Vec A (M + N)
--- vecLength N M vs rewrite (+-comm M N) = vs
-
 makeNPairs : {A : Set} → {M : ℕ} → (N : ℕ) → Vec A (N + M) → Vec (A × A) M
 makeNPairs {M = M} N vs with (Vec.drop N vs)
 ... | ends rewrite (+-comm N M) with (Vec.take M vs)
@@ -91,9 +73,15 @@ onlyKeepPairs ((a , b) ∷ xs) with (a Data.Nat.≟ b)
 ... | yes p = (a , b) ∷ onlyKeepPairs xs
 ... | no ¬p = onlyKeepPairs xs
 
+mainBuilder : (String → (List String) → IO Unit) → IO Unit
+mainBuilder main' = getProgName >>= λ name → getArgs >>= main' name
+
+readFileMain : (String → IO Unit) → String → (List String) → IO Unit
+readFileMain f name (file ∷ []) = readFiniteFile file >>= f
+readFileMain f name _ = putStrLn (toCostring ("Usage: " String.++ name String.++ " FILE"))
+
 main2 : IO Unit
-main2 = getProgName >>= λ name →
-                   getArgs >>= λ args →  main' name args
+main2 = mainBuilder (readFileMain processFile)
      where
        processFile : String → IO Unit
        processFile fs with (parseDigits (toList fs) )
@@ -102,25 +90,29 @@ main2 = getProgName >>= λ name →
        ... | neigh with (onlyKeepPairs neigh)
        ... | pairs with (List.foldr (λ pair acc → acc +  Σ.proj₁ pair ) 0 pairs)
        ... | sum = putStrLn (toCostring (ℕs.show sum))
-       main' : String → (List String) → IO Unit
-       main' name (file ∷ []) = readFiniteFile file >>= processFile
-       main' name _ = putStrLn (toCostring ("Usage: " String.++ name String.++ " FILE"))
 
-vecLength : ∀ {a} → {A : Set a} → {n : ℕ} → Vec A n → ℕ
-vecLength [] = 0
-vecLength (x ∷ vs) = suc (vecLength vs)
+checkEvenVec : ∀ {a} {A : Set a} → {N : ℕ} → Vec A N → Maybe (Σ[ M ∈ ℕ ] M + M ≡ N)
+checkEvenVec [] = just (0 , refl)
+checkEvenVec (x ∷ []) = nothing
+checkEvenVec { N = N} (x ∷ y ∷ vs) with (checkEvenVec vs)
+... | nothing = nothing
+... | just (M , p) with (cong suc (+-suc M M))
+... | t rewrite p = just ((suc M) , t)
 
 main : IO Unit
-main = getProgName >>= λ name →
-                    getArgs >>= λ args →  main' name args
+main = mainBuilder (readFileMain processFile)
       where
         processFile : String → IO Unit
         processFile fs with (parseDigits (toList fs) )
         ... | nothing = putStrLn (toCostring "Failed to parse file")
         ... | (just digs) with (Vec.fromList digs)
-        ... | x with (vecLength x)
-        ... | vl = {!checkEvenVec digs x!}
-        main' : String → (List String) → IO Unit
-        main' name (file ∷ []) = readFiniteFile file >>= processFile
-        main' name _ = putStrLn (toCostring ("Usage: " String.++ name String.++ " FILE"))
+        ... | digsv with (checkEvenVec digsv)
+        ... | nothing = putStrLn (toCostring "Input has to have even length")
+        ... | just (M , p) rewrite p with (halfwayNeighbours M v)
+          where
+            v : Vec ℕ (M + M)
+            v rewrite p = digsv
+        ... | hn with (onlyKeepPairs (VecToList hn) )
+        ... | pairs with (List.foldr (λ pair acc → acc + Σ.proj₁ pair) 0 pairs)
+        ... | sum = putStrLn (toCostring (ℕs.show sum))
 

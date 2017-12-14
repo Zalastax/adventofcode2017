@@ -50,7 +50,7 @@ main2 = mainBuilder (readFileMain processFile)
   where
     parseLine : List Char → List ℕ
     parseLine ls with (words ls)
-    ... | line-words = List.map unsafeParseInt line-words
+    ... | line-words = List.map unsafeParseNat line-words
     minMax : {n : ℕ} → Vec ℕ (suc n) → (ℕ × ℕ)
     minMax {0} (x ∷ []) = x , x
     minMax {suc _} (x ∷ ls) with (minMax ls)
@@ -74,7 +74,7 @@ main = mainBuilder (readFileMain processFile)
   where
     parseLine : List Char → List ℕ
     parseLine ls with (words ls)
-    ... | line-words = List.map unsafeParseInt line-words
+    ... | line-words = List.map unsafeParseNat line-words
     pierreDiv : ℕ → ℕ → ℕ
     pierreDiv x y with (x ⊓ y) | (x ⊔ y)
     ... | 0 | _ = 0

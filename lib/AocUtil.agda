@@ -60,11 +60,11 @@ toDigit '8' = just 8
 toDigit '9' = just 9
 toDigit _ = nothing
 
-unsafeParseInt : List Char → ℕ
-unsafeParseInt ls = unsafeParseInt' 0 ls
+unsafeParseNat : List Char → ℕ
+unsafeParseNat ls = unsafeParseNat' 0 ls
   where
-    unsafeParseInt' : ℕ → List Char → ℕ
-    unsafeParseInt' acc [] = acc
-    unsafeParseInt' acc (x ∷ ls) with (toDigit x)
+    unsafeParseNat' : ℕ → List Char → ℕ
+    unsafeParseNat' acc [] = acc
+    unsafeParseNat' acc (x ∷ ls) with (toDigit x)
     ... | nothing = acc * 10
-    ... | just n = unsafeParseInt' (n + (acc * 10)) ls
+    ... | just n = unsafeParseNat' (n + (acc * 10)) ls

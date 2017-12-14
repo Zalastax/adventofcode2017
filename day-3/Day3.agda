@@ -147,7 +147,7 @@ main : IO Unit
 main = mainBuilder main'
   where
     main' : String → (List String) → IO Unit
-    main' name (numS ∷ []) with (unsafeParseInt (String.toList numS))
+    main' name (numS ∷ []) with (unsafeParseNat (String.toList numS))
     ... | 0 = printUsage name
     ... | (suc n) =  printString (ℕs.show (dist-to-center (suc n) (cong suc refl)))
     main' name _ = printUsage name

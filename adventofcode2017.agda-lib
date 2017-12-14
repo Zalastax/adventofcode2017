@@ -3,4 +3,5 @@ include:
     ./lib/
     ./day-1/
     ./day-2/
+    ./day-3/
 depend: standard-library

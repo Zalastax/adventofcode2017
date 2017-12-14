@@ -20,23 +20,6 @@ open import AocUtil
 open import AocVec
 import Data.Fin as Fin
 
-words : List Char → List (List Char)
-words = splitWhen isWhitespace
-  where
-    isWhitespace : Char → Bool
-    isWhitespace ' ' = true
-    isWhitespace '\t' = true
-    isWhitespace _ = false
-
-unsafeParseInt : List Char → ℕ
-unsafeParseInt ls = unsafeParseInt' 0 ls
-  where
-    unsafeParseInt' : ℕ → List Char → ℕ
-    unsafeParseInt' acc [] = acc
-    unsafeParseInt' acc (x ∷ ls) with (toDigit x)
-    ... | nothing = acc * 10
-    ... | just n = unsafeParseInt' (n + (acc * 10)) ls
-
 natDiff : ℕ → ℕ → ℕ
 natDiff zero y = y
 natDiff x zero = x

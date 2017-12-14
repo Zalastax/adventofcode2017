@@ -35,6 +35,14 @@ lines = splitWhen isNewline
     isNewline '\n' = true
     isNewline _ = false
 
+words : List Char → List (List Char)
+words = splitWhen isWhitespace
+  where
+    isWhitespace : Char → Bool
+    isWhitespace ' ' = true
+    isWhitespace '\t' = true
+    isWhitespace _ = false
+
 sequence-io-prim : ∀ {a} {A : Set a} → List (IO A) → IO (List A)
 sequence-io-prim [] = return []
 sequence-io-prim (m ∷ ms) = m >>= λ x → sequence-io-prim ms >>= λ xs → return (x ∷ xs)
@@ -51,3 +59,12 @@ toDigit '7' = just 7
 toDigit '8' = just 8
 toDigit '9' = just 9
 toDigit _ = nothing
+
+unsafeParseInt : List Char → ℕ
+unsafeParseInt ls = unsafeParseInt' 0 ls
+  where
+    unsafeParseInt' : ℕ → List Char → ℕ
+    unsafeParseInt' acc [] = acc
+    unsafeParseInt' acc (x ∷ ls) with (toDigit x)
+    ... | nothing = acc * 10
+    ... | just n = unsafeParseInt' (n + (acc * 10)) ls
